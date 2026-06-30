@@ -1,0 +1,29 @@
+id: semantic_post_loan
+name: 贷后巡检语义模型
+dataset_id: ds_post_loan
+
+dimensions:
+  - id: region
+    name: 区域
+    field: region
+  - id: warning_level
+    name: 预警等级
+    field: warning_level
+  - id: warning_type
+    name: 预警类型
+    field: warning_type
+
+metrics:
+  - id: flow_change_pct
+    name: 流水变动率
+    formula: (current_flow - prior_flow) / prior_flow * 100
+    description: 结算流水环比变动，≤-20%触发橙色预警
+    unit: "%"
+    time_window: 月度
+    related_metrics: [large_transaction_flag, negative_news_flag]
+  - id: overdue_days
+    name: 逾期天数
+    formula: MAX(overdue_days)
+    description: 当前逾期天数
+    unit: 天
+    related_metrics: [repayment_status]

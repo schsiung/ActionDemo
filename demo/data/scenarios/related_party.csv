@@ -1,0 +1,6 @@
+customer_id,main_customer,related_customer,relation_type,share_pct,risk_level
+C004,天宇建筑工程,天宇建设集团,母子公司,100,高
+C004,天宇建筑工程,天宇建材贸易,关联交易,35,中
+C007,鼎盛房地产,鼎盛置业控股,母子公司,80,高
+C007,鼎盛房地产,鼎盛物业管理,关联方,20,中
+C002,盛达贸易集团,盛达供应链,上下游,45,中

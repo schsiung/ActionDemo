@@ -1,0 +1,6 @@
+customer_id,customer_name,region,industry,check_date,repayment_status,flow_change_pct,large_transaction_flag,negative_news_flag,warning_level,warning_type,handler
+C004,天宇建筑工程,西南,建筑,2025-06-15,逾期, -32.5,是,是,红色,流水骤降+负面舆情,张经理
+C007,鼎盛房地产,西南,房地产,2025-06-15,正常,-18.2,是,是,橙色,大额交易+负面新闻,李经理
+C008,宏达钢铁集团,华北,钢铁,2025-06-15,关注,-12.8,否,是,黄色,行业下行+舆情,王经理
+C002,盛达贸易集团,华南,批发零售,2025-06-15,逾期, -8.5,否,否,黄色,还款逾期,陈经理
+C001,华信科技有限公司,华东,制造业,2025-06-15,正常,5.2,否,否,绿色,正常,赵经理

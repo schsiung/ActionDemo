@@ -1,0 +1,5 @@
+bid_id,customer_name,competitor_bank,competitor_product,competitor_rate,our_score,competitor_score,score_gap,key_dimension,strength_weakness
+B001,华信科技有限公司,工行,流动资金贷款,3.8%,88,82,6,利率/服务,利率优势
+B001,华信科技有限公司,建行,科技贷款,3.6%,88,85,3,产品匹配,产品更贴合
+B002,盛达贸易集团,农行,贸易融资,3.5%,75,78,-3,额度,额度不足
+B003,天宇建筑工程,中行,项目贷款,3.9%,68,72,-4,担保方式,担保要求偏高

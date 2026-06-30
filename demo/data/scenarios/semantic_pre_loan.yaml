@@ -1,0 +1,46 @@
+id: semantic_pre_loan
+name: 贷前筛查语义模型
+dataset_id: ds_customer_360
+
+dimensions:
+  - id: region
+    name: 机构/区域
+    field: region
+  - id: industry
+    name: 行业
+    field: industry
+  - id: crr_level
+    name: CRR等级
+    field: crr_level
+    description: 反洗钱五级分类 A-E
+  - id: risk_level
+    name: 风险等级
+    field: risk_level
+
+metrics:
+  - id: credit_balance
+    name: 授信余额
+    formula: SUM(credit_balance)
+    description: 本行授信余额合计，万元
+    unit: 万元
+    time_window: 报告期末
+    update_frequency: 每日
+    related_metrics: [risk_score, legal_cases, sales_loan_ratio]
+  - id: risk_score
+    name: 风险评分
+    formula: AVG(risk_score)
+    description: 综合风险评分 0-100
+    unit: 分
+    related_metrics: [credit_balance, crr_level]
+  - id: sales_loan_ratio
+    name: 销贷比
+    formula: loan_balance / revenue
+    description: 贷款余额/年营业收入
+    unit: 比率
+    related_metrics: [credit_balance, debt_ratio]
+  - id: revenue_yoy_pct
+    name: 收入同比变动
+    formula: (revenue - prior_revenue) / prior_revenue * 100
+    description: 财报收入较上年变动百分比，≥20%触发关注
+    unit: "%"
+    related_metrics: [net_profit_yoy_pct, sales_loan_ratio]

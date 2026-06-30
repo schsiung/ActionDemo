@@ -1,0 +1,464 @@
+# AIP 全场景演示注册表
+# 每条场景包含：能力编号、业务场景、数据文件、演示动作与预期产出
+
+scenarios:
+  # ========== 零、数据准备类 ==========
+  - id: "0.1"
+    capability: 数据集接入与配置
+    group: 数据准备类
+    priority: P0
+    business_scene: 贷前筛查名单导入 + 主题数据集预置
+    data_files:
+      - scenarios/pre_loan_screening_list.csv
+      - scenarios/customer_360.csv
+    demo_action: data_connect
+    demo_params:
+      persistent_dataset: customer_360
+      upload_file: pre_loan_screening_list.csv
+    expected_output: 数据集注册信息 + 上传解析预览 + 质量初检
+
+  - id: "0.2"
+    capability: 语义模型与指标配置
+    group: 数据准备类
+    priority: P0
+    business_scene: CRR等级、销贷比、财报变动阈值口径配置
+    data_files:
+      - scenarios/semantic_pre_loan.yaml
+      - scenarios/financial_reports.csv
+      - scenarios/industry_benchmark.csv
+    demo_action: semantic_config
+    demo_params:
+      semantic_model: semantic_pre_loan.yaml
+      explain_metrics: [sales_loan_ratio, revenue_yoy_pct, crr_level]
+    expected_output: 指标口径解释 + 关联维度说明
+
+  - id: "0.3"
+    capability: 分析脚本编写与编辑
+    group: 数据准备类
+    priority: P0
+    business_scene: 上传数据后 SQL/Python 微调与执行
+    data_files:
+      - scenarios/financial_reports.csv
+    demo_action: script_workbench
+    demo_params:
+      sql: "SELECT customer_name, revenue_yoy_pct, alert_threshold_revenue FROM financial_reports WHERE revenue_yoy_pct < -20"
+    expected_output: SQL 执行结果 + 触阈客户清单
+
+  # ========== 一、问数类 ==========
+  - id: "1.1"
+    capability: 智能问数与知识问答
+    group: 问数类
+    priority: P0
+    business_scene: 风险前置预警查数 + 产品政策知识问答
+    data_files:
+      - scenarios/customer_360.csv
+      - knowledge/product_policy.md
+    demo_action: query_and_knowledge
+    demo_params:
+      data_questions:
+        - "查询盛达贸易集团的授信贷后情况"
+        - "华东区域高风险客户有哪些"
+      knowledge_questions:
+        - "CRR等级高于C级有什么限制"
+        - "科创e贷的产品政策是什么"
+    expected_output: 表格查数结果 + 知识库回答 + 证据来源
+
+  - id: "1.2"
+    capability: 多轮追问分析
+    group: 问数类
+    priority: P0
+    business_scene: 贷前筛查 - 授信贷后→司法→按机构分布
+    data_files:
+      - scenarios/customer_360.csv
+      - scenarios/judicial_signals.csv
+    demo_action: multi_turn_query
+    demo_params:
+      turns:
+        - "查询高风险客户授信贷后摘要"
+        - "按行业分布"
+        - "查看司法案件明细"
+    expected_output: 递进查询结果 + 推荐追问
+
+  - id: "1.3"
+    capability: 指标口径解释
+    group: 问数类
+    priority: P0
+    business_scene: 财报变动阈值、CRR含义、销贷比统计范围
+    data_files:
+      - scenarios/semantic_pre_loan.yaml
+    demo_action: metric_explain
+    demo_params:
+      questions:
+        - "销贷比口径是什么"
+        - "收入同比变动阈值怎么算"
+    expected_output: 公式 + 统计范围 + 业务含义
+
+  - id: "1.4"
+    capability: 关联指标推荐
+    group: 问数类
+    priority: P1
+    business_scene: 白名单画像 - 园区/产业链/资金环指标推荐
+    data_files:
+      - scenarios/marketing_whitelist.csv
+      - scenarios/semantic_marketing.yaml
+    demo_action: metric_recommend
+    demo_params:
+      base_metric: 营销优先级
+      customer: 华信科技有限公司
+    expected_output: 上下游关联指标列表
+
+  # ========== 二、看板类 ==========
+  - id: "2.1"
+    capability: Dashboard 设计与接入
+    group: 看板类
+    priority: P0
+    business_scene: 贷后巡检预警看板自动生成
+    data_files:
+      - scenarios/post_loan_monitoring.csv
+      - scenarios/transaction_flow.csv
+    demo_action: dashboard_generate
+    demo_params:
+      title: 贷后巡检预警看板
+      template: post_loan
+    expected_output: 可交互 HTML 看板文件
+
+  - id: "2.2"
+    capability: Dashboard 解读
+    group: 看板类
+    priority: P0
+    business_scene: 预警信号业务化解读
+    data_files:
+      - scenarios/post_loan_monitoring.csv
+    demo_action: dashboard_interpret
+    demo_params:
+      focus_signals: [流水骤降, 负面舆情, 大额交易]
+    expected_output: 关键变化 + 异常指标 + 关注要点
+
+  - id: "2.3"
+    capability: 数据下钻分析
+    group: 看板类
+    priority: P0
+    business_scene: 预警信号→客户经营事实→行业对照
+    data_files:
+      - scenarios/post_loan_monitoring.csv
+      - scenarios/transaction_flow.csv
+      - scenarios/industry_benchmark.csv
+    demo_action: drill_down
+    demo_params:
+      start: 红色预警客户
+      levels: [汇总, 客户, 月度流水, 行业对标]
+    expected_output: 逐层下钻数据 + 归因因子
+
+  # ========== 三、图表类 ==========
+  - id: "3.1"
+    capability: 图表设计
+    group: 图表类
+    priority: P0
+    business_scene: 产品推荐材料 - 按条线/受众选图
+    data_files:
+      - scenarios/marketing_whitelist.csv
+      - scenarios/product_catalog.csv
+    demo_action: chart_design
+    demo_params:
+      purposes:
+        - {purpose: 趋势, chart: line}
+        - {purpose: 排名, chart: rank}
+        - {purpose: 转化, chart: funnel}
+    expected_output: 图表类型推荐方案
+
+  - id: "3.2"
+    capability: 图表生成
+    group: 图表类
+    priority: P0
+    business_scene: 合作/投融资数据可视化
+    data_files:
+      - scenarios/customer_360.csv
+    demo_action: chart_generate
+    demo_params:
+      charts: [line, bar, rank, funnel, heatmap]
+    expected_output: 5类图表 HTML 片段
+
+  - id: "3.3"
+    capability: 图表解读
+    group: 图表类
+    priority: P0
+    business_scene: 流水降幅/负面新闻/财报板块变化解读
+    data_files:
+      - scenarios/transaction_flow.csv
+      - scenarios/financial_reports.csv
+    demo_action: chart_interpret
+    demo_params:
+      chart: 流水趋势折线图
+      customer: 天宇建筑工程
+    expected_output: 趋势/拐点/偏离程度文字解读
+
+  # ========== 四、报告类 ==========
+  - id: "4.1"
+    capability: 可复用报告框架定义
+    group: 报告类
+    priority: P0
+    business_scene: 行内/对客/领导参阅/产品推荐四类模板
+    data_files: []
+    demo_action: report_templates
+    demo_params:
+      templates: [marketing_onepager, customer_onepager, leader_brief, product_brochure]
+    expected_output: 模板结构 + 章节/槽位/变量位
+
+  - id: "4.2"
+    capability: 单次报告大纲规划
+    group: 报告类
+    priority: P0
+    business_scene: 模版外定制分析报告
+    data_files:
+      - scenarios/customer_360.csv
+    demo_action: report_outline
+    demo_params:
+      question: 天宇建筑工程风险专项分析
+    expected_output: 章节规划 + 分析路径 + 图表安排
+
+  - id: "4.3"
+    capability: 周期报告自动编排
+    group: 报告类
+    priority: P0
+    business_scene: 日报/周报固定模块编排
+    data_files:
+      - scenarios/daily_activities.csv
+    demo_action: periodic_report
+    demo_params:
+      templates: [daily_ops, weekly_review]
+    expected_output: 日/周报 HTML 文件
+
+  - id: "4.4"
+    capability: 报告变量化生成
+    group: 报告类
+    priority: P1
+    business_scene: 按客户/机构/检查类型生成贷后报告
+    data_files:
+      - scenarios/post_loan_monitoring.csv
+    demo_action: variable_report
+    demo_params:
+      template: post_loan_report
+      variables:
+        - {customer_name: 天宇建筑工程, org_name: 西南分行, check_type: 常规检查}
+        - {customer_name: 鼎盛房地产, org_name: 西南分行, check_type: 专项核查}
+    expected_output: 多版本报告文件
+
+  - id: "4.5"
+    capability: 多受众版本生成
+    group: 报告类
+    priority: P1
+    business_scene: 管理版/执行版/明细版营销材料
+    data_files:
+      - scenarios/marketing_whitelist.csv
+    demo_action: multi_audience_report
+    demo_params:
+      customer: 华信科技有限公司
+      versions: [管理版, 执行版, 明细版]
+    expected_output: 三套差异化表达
+
+  - id: "4.6"
+    capability: 报告生成
+    group: 报告类
+    priority: P0
+    business_scene: 全套营销材料一体化输出
+    data_files:
+      - scenarios/marketing_whitelist.csv
+      - scenarios/customer_360.csv
+    demo_action: full_report
+    demo_params:
+      templates: [marketing_onepager, customer_onepager, leader_brief]
+    expected_output: 含结论/图表/建议/口径的完整报告
+
+  # ========== 五、洞察类 ==========
+  - id: "5.1"
+    capability: 分析任务规划
+    group: 洞察类
+    priority: P0
+    business_scene: 贷前筛查全流程子任务编排
+    data_files:
+      - scenarios/pre_loan_screening_list.csv
+      - scenarios/customer_360.csv
+      - scenarios/judicial_signals.csv
+    demo_action: task_planning
+    demo_params:
+      workflow: 贷前风险筛查
+    expected_output: 子任务图 + 依赖 + 预期产出
+
+  - id: "5.2"
+    capability: 综合洞察归纳
+    group: 洞察类
+    priority: P0
+    business_scene: 风险画像要点 / 商机排序 / 信号清单
+    data_files:
+      - scenarios/customer_360.csv
+      - scenarios/judicial_signals.csv
+      - scenarios/marketing_whitelist.csv
+    demo_action: insight_synthesis
+    demo_params:
+      scenes: [贷前风险画像, 营销商机排序]
+    expected_output: 可决策业务结论摘要
+
+  - id: "5.3"
+    capability: 指标波动归因
+    group: 洞察类
+    priority: P0
+    business_scene: 流水/风险分/财报波动成因与贡献度
+    data_files:
+      - scenarios/transaction_flow.csv
+      - scenarios/financial_reports.csv
+    demo_action: attribution
+    demo_params:
+      metrics:
+        - {metric: flow_yoy_pct, dimension: month, customer: 天宇建筑工程}
+        - {metric: risk_score, dimension: industry}
+    expected_output: Top因子 + 贡献率 + 趋势特征
+
+  - id: "5.4"
+    capability: 多维对比分析
+    group: 洞察类
+    priority: P0
+    business_scene: 个体 vs 辖内均值 vs 行业水平
+    data_files:
+      - scenarios/customer_360.csv
+      - scenarios/industry_benchmark.csv
+      - scenarios/bid_scoring.csv
+    demo_action: comparison
+    demo_params:
+      comparisons:
+        - {type: 同业对标, customer: 华信科技有限公司}
+        - {type: 区域排位, dimension: region}
+    expected_output: 差异幅度 + 相对排位
+
+  # ========== 六、预警建议类 ==========
+  - id: "6.1"
+    capability: 数据预警设计
+    group: 预警建议类
+    priority: P0
+    business_scene: 流水/逾期/司法/CRR 分级预警规则
+    data_files:
+      - scenarios/alert_rules.yaml
+      - scenarios/customer_360.csv
+      - scenarios/post_loan_monitoring.csv
+    demo_action: alert_design
+    demo_params:
+      evaluate_datasets: [customer_360, post_loan_monitoring]
+    expected_output: 触发预警清单 + 处置建议
+
+  - id: "6.2"
+    capability: 业务建议生成
+    group: 预警建议类
+    priority: P0
+    business_scene: 贷前材料清单 / 营销话术 / 贷后核实举措
+    data_files:
+      - scenarios/customer_360.csv
+      - scenarios/risk_cases.csv
+    demo_action: suggestion_generate
+    demo_params:
+      scenes: [贷前筛查建议, 贷后处置建议, 营销触达建议]
+    expected_output: 可执行 action items
+
+  # ========== 七、可信类 ==========
+  - id: "7.1"
+    capability: 分析结果质检
+    group: 可信类
+    priority: P0
+    business_scene: 报告数字一致性 / 口径交叉检查
+    data_files:
+      - scenarios/customer_360.csv
+    demo_action: quality_check
+    demo_params: {}
+    expected_output: 质检通过/问题清单
+
+  - id: "7.2"
+    capability: 受控生成与事实约束
+    group: 可信类
+    priority: P0
+    business_scene: 无数据拒绝回答 / 规则库约束建议
+    data_files:
+      - scenarios/customer_360.csv
+    demo_action: controlled_generation
+    demo_params:
+      test_cases:
+        - {question: "查询不存在客户XYZ的授信", expect: 低置信}
+        - {question: "授信余额口径", expect: 有证据}
+    expected_output: 置信度标注 + 拒绝/降强度
+
+  - id: "7.3"
+    capability: 证据引用
+    group: 可信类
+    priority: P0
+    business_scene: 结论绑定数据来源/报告期/口径
+    data_files:
+      - scenarios/customer_360.csv
+    demo_action: evidence_citation
+    demo_params: {}
+    expected_output: 每条结论 evidence_refs
+
+  - id: "7.4"
+    capability: 分析过程回溯
+    group: 可信类
+    priority: P0
+    business_scene: 审计留痕 - 问题→SQL→结论链路
+    data_files: []
+    demo_action: trace_back
+    demo_params: {}
+    expected_output: 完整 Trace 步骤链
+
+  - id: "7.5"
+    capability: 缺失/低置信标注
+    group: 可信类
+    priority: P0
+    business_scene: 缺失/过期/冲突数据显式标注
+    data_files:
+      - scenarios/customer_360.csv
+    demo_action: low_confidence_tag
+    demo_params:
+      simulate_missing: true
+    expected_output: limitations 标注列表
+
+  # ========== 八、沉淀类 ==========
+  - id: "8.1"
+    capability: 分析模板沉淀
+    group: 沉淀类
+    priority: P1
+    business_scene: 标准分析路径 / 核查动作 / 报告框架
+    data_files:
+      - scenarios/risk_cases.csv
+    demo_action: template_precipitate
+    demo_params:
+      save_items: [问数路径, 分析大纲, 图表样式]
+    expected_output: 沉淀资产列表
+
+  - id: "8.2"
+    capability: 报告模板运营
+    group: 沉淀类
+    priority: P1
+    business_scene: 模板发布/版本/复制/推送
+    data_files: []
+    demo_action: template_ops
+    demo_params:
+      template_id: weekly_review
+      version: v1.1.0
+    expected_output: 版本记录 + 发布状态
+
+  - id: "8.3"
+    capability: 参考结果沉淀
+    group: 沉淀类
+    priority: P1
+    business_scene: 脱敏类案 / 高质量方案存为参考
+    data_files:
+      - scenarios/risk_cases.csv
+    demo_action: reference_case
+    demo_params:
+      min_score: 4.0
+    expected_output: 参考样例库
+
+  - id: "8.4"
+    capability: 分析产品运营监测
+    group: 沉淀类
+    priority: P1
+    business_scene: 问数成功率 / 报告成功率 / 采纳率
+    data_files: []
+    demo_action: ops_metrics
+    demo_params: {}
+    expected_output: 运营指标看板数据

@@ -85,7 +85,28 @@ curl http://localhost:8000/api/dashboard
 
 ```bash
 pytest tests/ -v
+pytest tests/test_scenarios.py -v   # 34 条场景全覆盖
 ```
+
+## 全场景演示
+
+覆盖 34 条业务能力场景（数据准备 → 沉淀类），每条场景配有独立数据与演示方案。
+
+```bash
+# 列出全部场景
+python3 -m demo.run_scenarios --list
+
+# 运行单条场景（如智能问数）
+python3 -m demo.run_scenarios --id 1.1
+
+# 按能力组运行
+python3 -m demo.run_scenarios --group 问数类
+
+# 运行全部 34 条
+python3 -m demo.run_scenarios --all
+```
+
+详细场景说明见 [docs/SCENARIOS.md](docs/SCENARIOS.md)。
 
 ## MVP 能力覆盖
 

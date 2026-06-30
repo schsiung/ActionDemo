@@ -1,0 +1,6 @@
+customer_id,customer_name,park_name,chain_position,supply_chain_score,fund_ring_score,bid_win_count,policy_match,marketing_priority,product_line
+W001,华信科技有限公司,张江科技园,核心企业,85,72,3,高新技术补贴,1,科技贷款
+W002,盛达贸易集团,华南物流园,链主,78,65,1,自贸区政策,3,贸易融资
+W003,创新软件科技,中关村软件园,配套,82,70,2,信创目录,2,科技贷款
+W004,绿源环保科技,光谷环保园,配套,75,68,1,碳中和政策,2,绿色信贷
+W005,先锋新能源,深圳新能源谷,核心,88,80,4,新能源补贴,1,绿色信贷

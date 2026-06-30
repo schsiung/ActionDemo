@@ -74,10 +74,66 @@ MARKETING_TEMPLATE = ReportTemplate(
     ],
 )
 
+CUSTOMER_ONEPAGER_TEMPLATE = ReportTemplate(
+    id="customer_onepager",
+    name="对客营销一页纸",
+    type="marketing",
+    audience="客户",
+    sections=[
+        ReportSection(id="intro", title="产品推荐", type=SectionType.AI_SUMMARY, variables=["customer_name"]),
+        ReportSection(id="products", title="产品介绍", type=SectionType.AI_ANALYSIS, chart_slots=["product_card"]),
+        ReportSection(id="credit", title="预授信额度", type=SectionType.DATA_TABLE, variables=["pre_credit_amount"]),
+        ReportSection(id="contact", title="客户经理联系方式", type=SectionType.ACTION_ITEMS),
+    ],
+)
+
+LEADER_BRIEF_TEMPLATE = ReportTemplate(
+    id="leader_brief",
+    name="领导参阅",
+    type="marketing",
+    audience="分支行领导",
+    sections=[
+        ReportSection(id="cooperation", title="客户及集团合作情况", type=SectionType.AI_SUMMARY),
+        ReportSection(id="intro", title="客户介绍", type=SectionType.AI_ANALYSIS),
+        ReportSection(id="breakthrough", title="建议议题/突破点", type=SectionType.ACTION_ITEMS),
+        ReportSection(id="executive", title="高管信息", type=SectionType.DATA_TABLE, variables=["avatar_slot"]),
+    ],
+)
+
+PRODUCT_BROCHURE_TEMPLATE = ReportTemplate(
+    id="product_brochure",
+    name="产品推荐材料",
+    type="marketing",
+    audience="对客/触达",
+    sections=[
+        ReportSection(id="highlights", title="产品亮点", type=SectionType.AI_SUMMARY),
+        ReportSection(id="charts", title="推荐产品图文", type=SectionType.CHART, chart_slots=["product_chart"]),
+        ReportSection(id="cases", title="合作案例", type=SectionType.AI_ANALYSIS),
+    ],
+)
+
+POST_LOAN_REPORT_TEMPLATE = ReportTemplate(
+    id="post_loan_report",
+    name="贷后检查报告",
+    type="risk",
+    audience="客户经理",
+    sections=[
+        ReportSection(id="overview", title="客户基本情况", type=SectionType.AI_SUMMARY, variables=["customer_name", "check_type"]),
+        ReportSection(id="signals", title="预警信号", type=SectionType.DATA_TABLE),
+        ReportSection(id="analysis", title="指标分析", type=SectionType.AI_ANALYSIS, chart_slots=["flow_trend"]),
+        ReportSection(id="actions", title="处置建议", type=SectionType.ACTION_ITEMS),
+        ReportSection(id="metric_def", title="口径说明", type=SectionType.METRIC_DEF),
+    ],
+)
+
 TEMPLATES: dict[str, ReportTemplate] = {
     "daily_ops": DAILY_REPORT_TEMPLATE,
     "weekly_review": WEEKLY_REPORT_TEMPLATE,
     "marketing_onepager": MARKETING_TEMPLATE,
+    "customer_onepager": CUSTOMER_ONEPAGER_TEMPLATE,
+    "leader_brief": LEADER_BRIEF_TEMPLATE,
+    "product_brochure": PRODUCT_BROCHURE_TEMPLATE,
+    "post_loan_report": POST_LOAN_REPORT_TEMPLATE,
 }
 
 
