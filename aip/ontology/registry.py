@@ -87,17 +87,44 @@ class OntologyRegistry:
         binding = self.get_dataset_binding(dataset_iri)
         if not binding:
             return ""
-        lines = [f"Dataset: {binding.iri} ({binding.label})", f"Table: {binding.table}", "Metrics:"]
+        lines = [
+            f"Dataset: {binding.iri} ({binding.label})",
+            f"Table: {binding.table}",
+            "Metrics:",
+        ]
         for miri in binding.metrics:
             m = self.get_metric(miri)
             if m:
                 lines.append(f"  - {m.iri}: {m.label} = {m.formula} ({m.unit})")
+        lines.append("Dimensions: (see V-Box binding)")
         lines.append("Related metrics:")
         for miri in binding.metrics:
             m = self.get_metric(miri)
             if m and m.related_to:
                 lines.append(f"  - {m.label} → {', '.join(m.related_to)}")
+        lines.append("Business axioms:")
+        for ax in self.get_axioms():
+            if ax.type in ("restriction", "alert", "threshold"):
+                lines.append(f"  - {ax.id}: {ax.label}")
         return "\n".join(lines)
+
+    def load_ttl(self, path: str | Path) -> None:
+        """从 Turtle 校验并补充指标（与 YAML 合并）."""
+        from aip.ontology.owl import TurtleLoader
+
+        loader = TurtleLoader(path)
+        validation = loader.validate_syntax()
+        if not validation["valid"]:
+            raise ValueError(f"Invalid TTL: {validation['issues']}")
+        for m in loader.parse_metrics():
+            if m["iri"] not in self._metrics:
+                self._metrics[m["iri"]] = MetricIndividual(
+                    iri=m["iri"],
+                    label=m["label"],
+                    formula=m["formula"],
+                )
+                short = m["iri"].split("/")[-1]
+                self._metrics[short] = self._metrics[m["iri"]]
 
     @property
     def version(self) -> str:

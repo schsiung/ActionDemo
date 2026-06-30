@@ -1,0 +1,118 @@
+@prefix aip: <https://bank.example.com/ontology/aip#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+aip: aip:Ontology ;
+    owl:versionInfo "1.0.0" ;
+    rdfs:label "AIP-Core 领域本体"@zh .
+
+aip:Customer a owl:Class ; rdfs:subClassOf aip:BusinessEntity ; rdfs:label "客户"@zh .
+aip:Metric a owl:Class ; rdfs:label "指标"@zh .
+aip:Dimension a owl:Class ; rdfs:label "维度"@zh .
+aip:Dataset a owl:Class ; rdfs:label "数据集"@zh .
+aip:Conclusion a owl:Class ; rdfs:label "结论"@zh .
+aip:Evidence a owl:Class ; rdfs:label "证据"@zh .
+aip:AlertRule a owl:Class ; rdfs:label "预警规则"@zh .
+aip:AlertEvent a owl:Class ; rdfs:label "预警事件"@zh .
+aip:BusinessRule a owl:Class ; rdfs:label "业务规则"@zh .
+aip:QueryResult a owl:Class ; rdfs:label "查询结果"@zh .
+aip:AnalysisTask a owl:Class ; rdfs:label "分析任务"@zh .
+aip:Report a owl:Class ; rdfs:label "报告"@zh .
+aip:ReportTemplate a owl:Class ; rdfs:label "报告模板"@zh .
+
+aip:CRRLevel_A a aip:CRRLevel ; rdfs:label "CRR-A"@zh .
+aip:CRRLevel_B a aip:CRRLevel ; rdfs:label "CRR-B"@zh .
+aip:CRRLevel_C a aip:CRRLevel ; rdfs:label "CRR-C"@zh .
+aip:CRRLevel_D a aip:CRRLevel ; rdfs:label "CRR-D"@zh .
+aip:CRRLevel_E a aip:CRRLevel ; rdfs:label "CRR-E"@zh .
+
+aip:Metric_credit_balance a aip:Metric ;
+    rdfs:label "授信余额"@zh ;
+    aip:formula "SUM(credit_balance)" ;
+    aip:unit "万元" ;
+    aip:timeWindow "报告期末" ;
+    aip:relatedTo aip:Metric_risk_score ;
+    aip:relatedTo aip:Metric_sales_loan_ratio .
+
+aip:Metric_risk_score a aip:Metric ;
+    rdfs:label "风险评分"@zh ;
+    aip:formula "AVG(risk_score)" ;
+    aip:unit "分" ;
+    aip:relatedTo aip:Metric_credit_balance .
+
+aip:Metric_sales_loan_ratio a aip:Metric ;
+    rdfs:label "销贷比"@zh ;
+    aip:formula "loan_balance / revenue" ;
+    aip:relatedTo aip:Metric_revenue_yoy .
+
+aip:Metric_revenue_yoy a aip:Metric ;
+    rdfs:label "收入同比变动"@zh ;
+    aip:formula "(revenue - prior_revenue) / prior_revenue * 100" ;
+    aip:unit "%" .
+
+aip:Metric_flow_change_pct a aip:Metric ;
+    rdfs:label "流水变动率"@zh ;
+    aip:formula "(current_flow - prior_flow) / prior_flow * 100" ;
+    aip:unit "%" ;
+    aip:relatedTo aip:Metric_risk_score .
+
+aip:Metric_marketing_priority a aip:Metric ;
+    rdfs:label "营销优先级"@zh ;
+    aip:formula "MIN(marketing_priority)" ;
+    aip:relatedTo aip:Metric_supply_chain_score .
+
+aip:Metric_supply_chain_score a aip:Metric ;
+    rdfs:label "产业链评分"@zh ;
+    aip:formula "AVG(supply_chain_score)" .
+
+aip:ax_crr_e_no_pure_credit a owl:Class ;
+    rdfs:label "CRR-E级禁止纯信用合作"@zh ;
+    aip:axiomType "restriction" ;
+    aip:onProperty aip:hasCRRLevel ;
+    aip:hasValue "E" .
+
+aip:ax_crr_d_limit_credit a owl:Class ;
+    rdfs:label "CRR-D级限制纯信用贷款"@zh ;
+    aip:axiomType "restriction" ;
+    aip:onProperty aip:hasCRRLevel ;
+    aip:hasValue "D" .
+
+aip:ax_revenue_yoy_threshold a owl:Class ;
+    rdfs:label "收入同比变动关注阈值"@zh ;
+    aip:axiomType "threshold" .
+
+aip:ax_flow_drop_alert a owl:Class ;
+    rdfs:label "流水骤降预警"@zh ;
+    aip:axiomType "alert" ;
+    aip:metric aip:Metric_flow_change_pct ;
+    aip:expression "<= -20" ;
+    aip:alertLevel "橙色" ;
+    aip:action "现场核查" .
+
+aip:ax_legal_cases_alert a owl:Class ;
+    rdfs:label "司法信号预警"@zh ;
+    aip:axiomType "alert" ;
+    aip:expression ">= 2" ;
+    aip:alertLevel "红色" ;
+    aip:action "限制新增授信" .
+
+aip:Dataset_customer_360 a aip:Dataset ;
+    rdfs:label "客户全景数据集"@zh ;
+    aip:physicalTable "customer_360" ;
+    aip:hasMetric aip:Metric_credit_balance ;
+    aip:hasMetric aip:Metric_risk_score ;
+    aip:hasMetric aip:Metric_sales_loan_ratio .
+
+aip:Dataset_post_loan_monitoring a aip:Dataset ;
+    rdfs:label "贷后巡检数据集"@zh ;
+    aip:physicalTable "post_loan_monitoring" ;
+    aip:hasMetric aip:Metric_flow_change_pct .
+
+aip:Dataset_marketing_whitelist a aip:Dataset ;
+    rdfs:label "营销白名单数据集"@zh ;
+    aip:physicalTable "marketing_whitelist" ;
+    aip:hasMetric aip:Metric_marketing_priority ;
+    aip:hasMetric aip:Metric_supply_chain_score .
+

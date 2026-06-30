@@ -13,7 +13,8 @@ from aip.data_prep.dataset_registry import DataAgentProfile, Dataset, DatasetReg
 from aip.data_prep.script_workbench import ScriptWorkbench
 from aip.data_prep.session_upload import SessionUploadService
 from aip.report.composer import ReportComposer
-from aip.semantic.model import load_semantic_model
+from aip.ontology.factory import ensure_ttl_export, get_ontology_registry, get_shacl_validator
+from aip.semantic.model import SemanticModel, load_semantic_model
 from aip.trust.layer import TrustLayer
 from aip.visualization.dashboard import DashboardGenerator
 
@@ -33,26 +34,60 @@ def _print_json(data: dict, indent: int = 2) -> None:
 
 
 def setup() -> tuple[DatasetRegistry, QueryAgent, DeepResearchAgent, AssetCenter]:
-    """初始化数据集、语义模型与 Agent."""
+    """初始化数据集、语义模型、本体与 Agent."""
     registry = DatasetRegistry()
-    csv_path = DATA_DIR / "sample_customers.csv"
-    semantic_path = DATA_DIR / "semantic_model.yaml"
+    ontology = get_ontology_registry()
+    ensure_ttl_export()
+
+    # 优先使用场景数据以对齐本体 V-Box
+    csv_path = DATA_DIR / "scenarios" / "customer_360.csv"
+    if not csv_path.exists():
+        csv_path = DATA_DIR / "sample_customers.csv"
+    table_name = "customer_360" if "customer_360" in csv_path.name else "customer_credit"
 
     dataset = Dataset(
-        id="ds_customer_credit",
-        name="客户授信主题数据集",
+        id="ds_customer_360",
+        name="客户全景数据集",
         source_type="table",
-        table_name="customer_credit",
+        table_name=table_name,
         profile=DataAgentProfile(vectorized=True, update_mode="full"),
     )
     registry.register_csv(dataset, csv_path)
-    semantic = load_semantic_model(semantic_path)
 
-    query_agent = QueryAgent(registry, semantic, dataset.table_name)
-    deep_agent = DeepResearchAgent(registry, semantic, dataset.table_name)
+    semantic_path = DATA_DIR / "scenarios" / "semantic_pre_loan.yaml"
+    if semantic_path.exists():
+        semantic = load_semantic_model(semantic_path)
+        semantic.dataset_iri = "aip:Dataset/customer_360"
+    else:
+        semantic = SemanticModel.from_ontology(ontology, "aip:Dataset/customer_360", "customer_credit", "客户授信")
+
+    query_agent = QueryAgent(
+        registry, semantic, table_name,
+        ontology_registry=ontology,
+        dataset_iri="aip:Dataset/customer_360",
+        shacl_validator=get_shacl_validator(),
+    )
+    deep_agent = DeepResearchAgent(registry, semantic, table_name)
     assets = AssetCenter()
 
     return registry, query_agent, deep_agent, assets
+
+
+def demo_ontology(query_agent: QueryAgent) -> None:
+    _header("本体论 - OWL / SHACL / 语义 DDL Prompt")
+    ttl_path = ensure_ttl_export()
+    print(f"  OWL Turtle 已导出: {ttl_path}")
+
+    prompt = query_agent.get_prompt_for_question("高风险客户筛查")
+    print(f"  语义 DDL 长度: {len(prompt['semantic_ddl'])} 字符")
+    print(f"  本体版本: {prompt['ontology_version']}")
+
+    result = query_agent.ask("高风险客户筛查")
+    print(f"  问数类型: {result.get('type')}")
+    print(f"  指标 IRI: {result.get('metric_iri')}")
+    print(f"  SHACL: {result.get('shacl', {}).get('message')}")
+    if result.get("conclusion_jsonld"):
+        print(f"  结论 JSON-LD @id: {result['conclusion_jsonld'].get('@id')}")
 
 
 def demo_data_prep(registry: DatasetRegistry) -> None:
@@ -71,7 +106,7 @@ def demo_data_prep(registry: DatasetRegistry) -> None:
     workbench = ScriptWorkbench(registry)
     sql_result = workbench.execute_sql(
         "SELECT industry, COUNT(*) AS cnt, AVG(risk_score) AS avg_risk "
-        "FROM customer_credit GROUP BY industry ORDER BY cnt DESC"
+        "FROM customer_360 GROUP BY industry ORDER BY cnt DESC"
     )
     print(f"  SQL 执行: {'成功' if sql_result['success'] else '失败'}")
     print(f"  返回 {sql_result['row_count']} 行")
@@ -123,7 +158,7 @@ def demo_dashboard(deep_agent: DeepResearchAgent) -> str:
     _header("2.1 HTML 可交互看板生成")
     comparison = deep_agent.compare.by_dimension("region", "credit_balance")
     summary = deep_agent.registry.execute_sql(
-        "SELECT COUNT(*) AS cnt, SUM(credit_balance) AS total, AVG(risk_score) AS avg_risk FROM customer_credit"
+        "SELECT COUNT(*) AS cnt, SUM(credit_balance) AS total, AVG(risk_score) AS avg_risk FROM customer_360"
     ).to_dict(orient="records")[0]
 
     generator = DashboardGenerator(OUTPUT_DIR / "dashboards")
@@ -208,6 +243,7 @@ def main() -> None:
     OUTPUT_DIR.mkdir(exist_ok=True)
     registry, query_agent, deep_agent, assets = setup()
 
+    demo_ontology(query_agent)
     demo_data_prep(registry)
     demo_query(query_agent)
     deep_result = demo_insights(deep_agent)

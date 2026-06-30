@@ -14,6 +14,7 @@ from aip.data_prep.dataset_registry import DataAgentProfile, Dataset, DatasetReg
 from aip.data_prep.script_workbench import ScriptWorkbench
 from aip.data_prep.session_upload import SessionUploadService
 from aip.knowledge.rag import KnowledgeEngine
+from aip.ontology.factory import get_ontology_registry, get_shacl_validator
 from aip.semantic.model import SemanticModel, load_semantic_model
 
 BASE_DIR = Path(__file__).parent.parent
@@ -49,7 +50,9 @@ class ScenarioContext:
         self.registry = DatasetRegistry()
         self.assets = AssetCenter()
         self.knowledge = KnowledgeEngine(KNOWLEDGE_DIR)
-        self.alert_engine = AlertEngine(SCENARIO_DIR / "alert_rules.yaml")
+        self.ontology = get_ontology_registry()
+        self.shacl = get_shacl_validator()
+        self.alert_engine = AlertEngine(SCENARIO_DIR / "alert_rules.yaml", self.ontology)
         self._agents: dict[str, QueryAgent] = {}
         self._deep_agents: dict[str, DeepResearchAgent] = {}
         self._semantics: dict[str, SemanticModel] = {}
@@ -86,7 +89,13 @@ class ScenarioContext:
         if cache_key not in self._agents:
             semantic = self.get_semantic(semantic_key)
             table_name = DATASET_MAP.get(table, ("", table, ""))[1]
-            self._agents[cache_key] = QueryAgent(self.registry, semantic, table_name)
+            dataset_iri = f"aip:Dataset/{table}" if table != "customer_360" else "aip:Dataset/customer_360"
+            self._agents[cache_key] = QueryAgent(
+                self.registry, semantic, table_name,
+                ontology_registry=self.ontology,
+                dataset_iri=dataset_iri,
+                shacl_validator=self.shacl,
+            )
         return self._agents[cache_key]
 
     def get_deep_agent(self, table: str = "customer_360", semantic_key: str = "semantic_pre_loan") -> DeepResearchAgent:

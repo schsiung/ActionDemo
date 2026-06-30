@@ -1,4 +1,4 @@
-"""AIP 核心数据模型."""
+"""AIP 核心数据模型（本体化）."""
 
 from __future__ import annotations
 
@@ -26,11 +26,25 @@ class ConfidenceLevel(str, Enum):
 
 
 class EvidenceRef(BaseModel):
+    """证据引用 - 对齐 aip:Evidence."""
+
     type: str
-    source: str
+    source: str  # Dataset / Knowledge IRI 或 legacy id
     detail: str = ""
     period: str | None = None
-    metric_id: str | None = None
+    metric_id: str | None = None  # aip:Metric/xxx
+    iri: str | None = None
+
+    def to_jsonld(self) -> dict[str, Any]:
+        return {
+            "@type": "aip:Evidence",
+            "@id": self.iri or f"data:aip/evidence/{uuid4().hex[:12]}",
+            "evidenceType": self.type,
+            "source": self.source,
+            "metric": self.metric_id,
+            "timePeriod": self.period,
+            "derivation": self.detail,
+        }
 
 
 class QueryResult(BaseModel):
@@ -39,6 +53,19 @@ class QueryResult(BaseModel):
     rows: list[dict[str, Any]]
     dataset_id: str
     row_count: int
+    dataset_iri: str | None = None
+    metric_iri: str | None = None
+    result_iri: str | None = None
+
+    def to_jsonld(self) -> dict[str, Any]:
+        return {
+            "@context": "https://bank.example.com/ontology/aip/context.jsonld",
+            "@type": "aip:QueryResult",
+            "@id": self.result_iri or f"data:aip/query-result/{uuid4().hex[:12]}",
+            "dataset": self.dataset_iri or self.dataset_id,
+            "rowCount": self.row_count,
+            "aip:sql": self.sql,
+        }
 
 
 class ChartSpec(BaseModel):
@@ -54,6 +81,20 @@ class Conclusion(BaseModel):
     confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
     evidence: list[EvidenceRef] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+    iri: str | None = None
+    metric_iri: str | None = None
+
+    def to_jsonld(self) -> dict[str, Any]:
+        return {
+            "@context": "https://bank.example.com/ontology/aip/context.jsonld",
+            "@type": "aip:Conclusion",
+            "@id": self.iri or f"data:aip/conclusion/{uuid4().hex[:12]}",
+            "text": self.text,
+            "confidenceLevel": f"aip:Confidence/{self.confidence.value}",
+            "supportedBy": [e.to_jsonld() for e in self.evidence],
+            "limitations": self.limitations,
+            "metric": self.metric_iri,
+        }
 
 
 class TraceStep(BaseModel):
