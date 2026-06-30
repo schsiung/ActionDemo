@@ -108,6 +108,12 @@ python3 -m demo.run_scenarios --all
 
 详细场景说明见 [docs/SCENARIOS.md](docs/SCENARIOS.md)。
 
+## 研发文档
+
+- [研发计划（P0/P1/里程碑）](docs/RD_PLAN.md)
+- [技术方案（模块实现与选型）](docs/TECHNICAL_DESIGN.md)
+- [场景演示方案](docs/SCENARIOS.md)
+
 ## MVP 能力覆盖
 
 | 能力组 | MVP 实现 | 说明 |
