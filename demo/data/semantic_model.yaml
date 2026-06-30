@@ -1,0 +1,48 @@
+id: customer_credit_semantic
+name: 客户授信语义模型
+dataset_id: ds_customer_credit
+
+dimensions:
+  - id: region
+    name: 机构/区域
+    field: region
+    description: 客户所属分支行区域
+  - id: industry
+    name: 行业
+    field: industry
+    description: 客户所属行业分类
+  - id: risk_level
+    name: 风险等级
+    field: risk_level
+    description: 客户风险五级分类
+
+metrics:
+  - id: credit_balance
+    name: 授信余额
+    formula: SUM(credit_balance)
+    description: 客户在本行的授信余额合计，单位万元
+    unit: 万元
+    time_window: 报告期末
+    update_frequency: 每日
+    related_metrics:
+      - risk_score
+      - loan_count
+  - id: risk_score
+    name: 风险评分
+    formula: AVG(risk_score)
+    description: 综合风险评分，0-100分，分数越高风险越大
+    unit: 分
+    time_window: 报告期末
+    update_frequency: 每日
+    related_metrics:
+      - credit_balance
+      - risk_level
+  - id: loan_count
+    name: 贷款笔数
+    formula: COUNT(*)
+    description: 客户贷款账户笔数
+    unit: 笔
+    time_window: 报告期末
+    update_frequency: 每日
+    related_metrics:
+      - credit_balance
