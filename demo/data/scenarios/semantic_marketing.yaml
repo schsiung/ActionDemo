@@ -1,0 +1,27 @@
+id: semantic_marketing
+name: 营销方案语义模型
+dataset_id: ds_marketing
+
+dimensions:
+  - id: product_line
+    name: 产品条线
+    field: product_line
+  - id: park_name
+    name: 园区
+    field: park_name
+  - id: chain_position
+    name: 产业链位置
+    field: chain_position
+
+metrics:
+  - id: marketing_priority
+    name: 营销优先级
+    formula: MIN(marketing_priority)
+    description: 1=最高优先级
+    unit: 序
+    related_metrics: [supply_chain_score, bid_win_count]
+  - id: supply_chain_score
+    name: 产业链评分
+    formula: AVG(supply_chain_score)
+    description: 产业链/股权链关联度评分
+    related_metrics: [fund_ring_score, marketing_priority]

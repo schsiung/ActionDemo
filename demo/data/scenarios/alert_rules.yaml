@@ -1,0 +1,36 @@
+rules:
+  - id: ALERT_FLOW_DROP
+    name: 流水骤降预警
+    metric: flow_change_pct
+    condition: "<= -20"
+    level: 橙色
+    action: 启动现场核查
+    notify: 客户经理+风险经理
+  - id: ALERT_OVERDUE
+    name: 还款逾期预警
+    metric: overdue_days
+    condition: "> 0"
+    level: 黄色
+    action: 发送催收函
+    notify: 客户经理
+  - id: ALERT_LEGAL
+    name: 司法信号预警
+    metric: legal_cases
+    condition: ">= 2"
+    level: 红色
+    action: 限制新增授信
+    notify: 客户经理+审批人
+  - id: ALERT_CRR_D
+    name: CRR-D级拦截
+    metric: crr_level
+    condition: "in ['D','E']"
+    level: 红色
+    action: 强拦截-不予纯信用贷款
+    notify: 客户经理
+  - id: ALERT_REVENUE_DROP
+    name: 财报收入骤降
+    metric: revenue_yoy_pct
+    condition: "<= -20"
+    level: 橙色
+    action: 补充财务说明
+    notify: 客户经理

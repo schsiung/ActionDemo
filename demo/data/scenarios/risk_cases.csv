@@ -1,0 +1,5 @@
+case_id,case_type,industry,signal_type,disposal_action,disposal_result,disposal_days,source_org,period
+RC001,贷后预警,建筑,流水骤降,现场核查+压降额度,风险化解,45,西南分行,2024Q4
+RC002,贷前筛查,批发零售,司法纠纷,补充担保+限制产品,正常续贷,30,华南分行,2025Q1
+RC003,贷后预警,房地产,负面舆情,加强监测+压降敞口,部分压降,60,西南分行,2024Q4
+RC004,贷前筛查,制造业,财报恶化,暂缓授信,拒绝,15,华东分行,2025Q1
