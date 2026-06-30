@@ -112,6 +112,7 @@ python3 -m demo.run_scenarios --all
 
 - [研发计划（P0/P1/里程碑）](docs/RD_PLAN.md)
 - [技术方案（模块实现与选型）](docs/TECHNICAL_DESIGN.md)
+- [**本体论技术规格（T-Box/A-Box/V-Box）**](docs/ONTOLOGY_SPEC.md)
 - [场景演示方案](docs/SCENARIOS.md)
 
 ## MVP 能力覆盖

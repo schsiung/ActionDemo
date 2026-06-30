@@ -10,7 +10,8 @@
 ### 1.1 建设原则
 
 1. **语义层先行**：语义模型未就绪前，不开放生产问数
-2. **主链路优先**：数据准备 → 问数 → 图表/洞察 → 报告 → 可信约束
+2. **本体驱动**：T-Box（术语）→ V-Box（映射）→ A-Box（实例）三层本体架构，Agent 仅操作本体许可类型（详见 [ONTOLOGY_SPEC.md](ONTOLOGY_SPEC.md)）
+3. **主链路优先**：数据准备 → 问数 → 图表/洞察 → 报告 → 可信约束
 3. **Agent 分工**：QueryAgent（单轮）/ DeepResearchAgent（多步）/ ReportOrchestrator（模板）职责不交叉
 4. **可信贯穿**：P0 功能必须同步交付证据链，不允许「先上线后补可信」
 5. **模板化运营**：高频场景走模板沉淀，开放性问题走深度研究
@@ -146,7 +147,8 @@ gantt
 
 | 模块 | 研发内容 | 完成标准（DoD） | 依赖 |
 |------|----------|-----------------|------|
-| **DatasetRegistry** | 对接行内数仓（Hive/ClickHouse）、BI 数据集 API；增量同步任务 | 3 类数据源接入成功；全量/增量可配置；元数据自动采集 | 数据源账号、网络打通 |
+| **OntologyRegistry** | T-Box v1.0（类/属性/公理/指标词表）；OCR 流程 | `aip_core.owl` 评审通过；50+ 指标 IRI 登记 | 业务+架构评审 |
+| **DatasetRegistry** | 对接行内数仓（Hive/ClickHouse）、BI 数据集 API；增量同步任务 | 3 类数据源接入成功；V-Box 映射 100% 覆盖 P0 指标 | 数据源账号、OntologyRegistry |
 | **DataAgentProfile** | 元数据向量化、样本值索引、字段画像 | 问数召回准确率评测 ≥ 85%（内部评测集） | 向量库、Embedding 服务 |
 | **SemanticModelCenter** | 配置台 CRUD、公式校验、数据集绑定 | 50+ 指标可配置；口径解释一致性 100% | M1 DatasetRegistry |
 | **TrustLayer（基础）** | 证据引用规范、受控生成 Prompt、无数据拒绝 | 所有 P0 接口返回 evidence_refs | 无 |
