@@ -30,6 +30,7 @@ dev = ["pytest>=8.0.0", "httpx>=0.27.0"]
 aip-demo = "demo.run_mvp:main"
 aip-api = "demo.api:main"
 aip-scenarios = "demo.run_scenarios:main"
+aip-hermes = "demo.api:main"
 aip-export-owl = "aip.ontology.cli:export_owl"
 aip-ontology-sync = "aip.ontology.cli:main"
 

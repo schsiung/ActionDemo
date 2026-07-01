@@ -103,7 +103,13 @@ class ScenarioContext:
         if cache_key not in self._deep_agents:
             semantic = self.get_semantic(semantic_key)
             table_name = DATASET_MAP.get(table, ("", table, ""))[1]
-            self._deep_agents[cache_key] = DeepResearchAgent(self.registry, semantic, table_name)
+            self._deep_agents[cache_key] = DeepResearchAgent(
+                self.registry,
+                semantic,
+                table_name,
+                ontology_registry=self.ontology,
+                dataset_iri=f"aip:Dataset/{table}" if table else "aip:Dataset/customer_360",
+            )
         return self._deep_agents[cache_key]
 
     def workbench(self) -> ScriptWorkbench:
