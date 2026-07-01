@@ -4,7 +4,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-aip: aip:Ontology ;
+aip:Ontology a owl:Ontology ;
     owl:versionInfo "1.0.0" ;
     rdfs:label "AIP-Core 领域本体"@zh .
 

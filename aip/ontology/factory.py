@@ -7,12 +7,14 @@ from pathlib import Path
 
 from aip.ontology.registry import OntologyRegistry
 from aip.ontology.shacl_validator import ShaclValidator
+from aip.ontology.sync import OntologySyncService
 from aip.ontology.task_graph import TaskGraphRegistry
 
 ONTOLOGY_DIR = Path(__file__).parent.parent.parent / "demo" / "data" / "ontology"
 DEFAULT_YAML = ONTOLOGY_DIR / "aip_core.yaml"
 DEFAULT_TTL = ONTOLOGY_DIR / "aip_core.ttl"
 DEFAULT_SHACL = ONTOLOGY_DIR / "shapes" / "pre_loan_screening.yaml"
+DEFAULT_SHACL_TTL = ONTOLOGY_DIR / "shapes" / "pre_loan_screening.shacl.ttl"
 DEFAULT_TASK_GRAPHS = ONTOLOGY_DIR / "task_graphs.yaml"
 DEFAULT_DATASET_IRI = "aip:Dataset/customer_360"
 
@@ -27,7 +29,13 @@ def get_ontology_registry() -> OntologyRegistry:
 
 @lru_cache(maxsize=1)
 def get_shacl_validator() -> ShaclValidator:
-    return ShaclValidator(DEFAULT_SHACL, get_ontology_registry())
+    return ShaclValidator(
+        DEFAULT_SHACL,
+        get_ontology_registry(),
+        shapes_ttl_path=DEFAULT_SHACL_TTL,
+        ontology_ttl_path=DEFAULT_TTL,
+        use_pyshacl=True,
+    )
 
 
 @lru_cache(maxsize=1)
@@ -36,6 +44,18 @@ def get_task_graph_registry() -> TaskGraphRegistry:
     if DEFAULT_TASK_GRAPHS.exists():
         reg.load(DEFAULT_TASK_GRAPHS)
     return reg
+
+
+@lru_cache(maxsize=1)
+def get_sync_service() -> OntologySyncService:
+    return OntologySyncService(DEFAULT_YAML, DEFAULT_TTL, get_ontology_registry())
+
+
+def clear_ontology_caches() -> None:
+    """同步后刷新缓存."""
+    get_ontology_registry.cache_clear()
+    get_shacl_validator.cache_clear()
+    get_sync_service.cache_clear()
 
 
 def ensure_ttl_export() -> Path:

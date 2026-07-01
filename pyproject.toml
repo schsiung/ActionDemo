@@ -19,6 +19,8 @@ dependencies = [
     "uvicorn>=0.27.0",
     "python-multipart>=0.0.9",
     "openpyxl>=3.1.0",
+    "rdflib>=7.0.0",
+    "pyshacl>=0.26.0",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +31,7 @@ aip-demo = "demo.run_mvp:main"
 aip-api = "demo.api:main"
 aip-scenarios = "demo.run_scenarios:main"
 aip-export-owl = "aip.ontology.cli:export_owl"
+aip-ontology-sync = "aip.ontology.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
