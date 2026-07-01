@@ -7,11 +7,13 @@ from pathlib import Path
 
 from aip.ontology.registry import OntologyRegistry
 from aip.ontology.shacl_validator import ShaclValidator
+from aip.ontology.task_graph import TaskGraphRegistry
 
 ONTOLOGY_DIR = Path(__file__).parent.parent.parent / "demo" / "data" / "ontology"
 DEFAULT_YAML = ONTOLOGY_DIR / "aip_core.yaml"
 DEFAULT_TTL = ONTOLOGY_DIR / "aip_core.ttl"
 DEFAULT_SHACL = ONTOLOGY_DIR / "shapes" / "pre_loan_screening.yaml"
+DEFAULT_TASK_GRAPHS = ONTOLOGY_DIR / "task_graphs.yaml"
 DEFAULT_DATASET_IRI = "aip:Dataset/customer_360"
 
 
@@ -26,6 +28,14 @@ def get_ontology_registry() -> OntologyRegistry:
 @lru_cache(maxsize=1)
 def get_shacl_validator() -> ShaclValidator:
     return ShaclValidator(DEFAULT_SHACL, get_ontology_registry())
+
+
+@lru_cache(maxsize=1)
+def get_task_graph_registry() -> TaskGraphRegistry:
+    reg = TaskGraphRegistry()
+    if DEFAULT_TASK_GRAPHS.exists():
+        reg.load(DEFAULT_TASK_GRAPHS)
+    return reg
 
 
 def ensure_ttl_export() -> Path:

@@ -324,8 +324,16 @@ def _full_report(ex: ScenarioExecutor, scenario: dict) -> dict:
 @_register("task_planning")
 def _task_planning(ex: ScenarioExecutor, scenario: dict) -> dict:
     deep = ex.ctx.get_deep_agent()
-    plan = deep.plan("贷前风险筛查：名单导入→多源扫描→规则命中→画像→路径判断")
-    return {"workflow": scenario["demo_params"]["workflow"], "plan": plan}
+    question = "贷前风险筛查：名单导入→多源扫描→规则命中→画像→路径判断"
+    plan = deep.plan(question)
+    return {
+        "workflow": scenario["demo_params"]["workflow"],
+        "workflow_id": plan["workflow_id"],
+        "node_count": len(plan["tasks"]),
+        "execution_order": plan["execution_order"],
+        "task_graph_id": plan["task_graph"]["@id"],
+        "plan": plan,
+    }
 
 
 @_register("insight_synthesis")

@@ -1,0 +1,133 @@
+# DeepResearchAgent TaskGraph 工作流定义（本体化节点）
+# 每个节点是 aip:AnalysisTask 实例，产出对齐本体类
+
+task_graphs:
+  - id: general_risk_analysis
+    iri: aip:TaskGraph/general_risk_analysis
+    label: 通用风险全景分析
+    pattern: risk_analysis
+    dataset_iri: aip:Dataset/customer_360
+    nodes:
+      - id: T1
+        name: 数据概览
+        action: aggregate_summary
+        ontology_class: aip:QueryResult
+        output_type: aip:QueryResult
+        metrics: [aip:Metric/credit_balance, aip:Metric/risk_score]
+        depends_on: []
+        expected_output: 客户数、平均风险分、授信合计
+
+      - id: T2
+        name: 风险信号扫描
+        action: risk_scan
+        ontology_class: aip:AlertEvent
+        output_type: aip:AlertEvent
+        metrics: [aip:Metric/risk_score]
+        depends_on: [T1]
+        expected_output: 高风险客户清单
+
+      - id: T3
+        name: 区域多维对比
+        action: compare
+        ontology_class: aip:ComparisonResult
+        output_type: aip:ComparisonResult
+        metrics: [aip:Metric/credit_balance]
+        dimensions: [aip:Dimension/region]
+        depends_on: [T1]
+        expected_output: 区域排位与差异
+
+      - id: T4
+        name: 综合洞察归纳
+        action: synthesize
+        ontology_class: aip:Conclusion
+        output_type: aip:Conclusion
+        depends_on: [T2, T3]
+        expected_output: 可决策业务结论摘要
+
+  - id: pre_loan_screening
+    iri: aip:TaskGraph/pre_loan_screening
+    label: 贷前风险筛查全流程
+    pattern: risk_screening
+    dataset_iri: aip:Dataset/customer_360
+    nodes:
+      - id: T1
+        name: 名单数据校验
+        action: aggregate_summary
+        ontology_class: aip:QueryResult
+        output_type: aip:QueryResult
+        metrics: [aip:Metric/credit_balance]
+        depends_on: []
+        expected_output: 导入客户数量与覆盖度
+
+      - id: T2
+        name: 多源风险扫描
+        action: risk_scan
+        ontology_class: aip:AlertEvent
+        output_type: aip:AlertEvent
+        metrics: [aip:Metric/risk_score]
+        depends_on: [T1]
+        expected_output: 风险/司法/CRR 信号
+
+      - id: T3
+        name: 行业归因分析
+        action: attribution
+        ontology_class: aip:AttributionResult
+        output_type: aip:AttributionResult
+        metrics: [aip:Metric/risk_score]
+        dimensions: [aip:Dimension/industry]
+        depends_on: [T2]
+        expected_output: Top 因子贡献率
+
+      - id: T4
+        name: 区域对标对比
+        action: compare
+        ontology_class: aip:ComparisonResult
+        output_type: aip:ComparisonResult
+        metrics: [aip:Metric/credit_balance]
+        dimensions: [aip:Dimension/region]
+        depends_on: [T1]
+        expected_output: 辖内排位
+
+      - id: T5
+        name: 风险画像归纳
+        action: synthesize
+        ontology_class: aip:Conclusion
+        output_type: aip:Conclusion
+        depends_on: [T2, T3, T4]
+        expected_output: 风险画像要点与路径建议
+
+      - id: T6
+        name: 路径判定与建议
+        action: path_recommendation
+        ontology_class: aip:Conclusion
+        output_type: aip:Conclusion
+        governed_by: [ax_crr_e_no_pure_credit, ax_crr_d_limit_credit, ax_legal_cases_alert]
+        depends_on: [T5]
+        expected_output: 可营销/需复核/暂缓（规则库约束）
+
+# 动作类型 → 本体类映射（T-Box）
+action_types:
+  aggregate_summary:
+    ontology_class: aip:AnalysisTask
+    output_class: aip:QueryResult
+    tool: semantic_query
+  risk_scan:
+    ontology_class: aip:AnalysisTask
+    output_class: aip:AlertEvent
+    tool: evaluate_alert_rules
+  compare:
+    ontology_class: aip:AnalysisTask
+    output_class: aip:ComparisonResult
+    tool: compare_entities
+  attribution:
+    ontology_class: aip:AnalysisTask
+    output_class: aip:AttributionResult
+    tool: dimension_attribution
+  synthesize:
+    ontology_class: aip:AnalysisTask
+    output_class: aip:Conclusion
+    tool: insight_synthesis
+  path_recommendation:
+    ontology_class: aip:AnalysisTask
+    output_class: aip:Conclusion
+    tool: rule_constrained_suggestion
