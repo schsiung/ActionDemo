@@ -140,10 +140,24 @@ def demo_query(query_agent: QueryAgent) -> None:
 
 def demo_insights(deep_agent: DeepResearchAgent) -> dict:
     _header("5.1 分析任务规划 + 5.2 综合洞察")
+    plan = deep_agent.plan("对公客户风险全景分析")
+    print(f"  工作流: {plan['workflow_id']}")
+    print(f"  节点数: {len(plan['tasks'])}")
+    print(f"  执行顺序: {' → '.join(plan['execution_order'])}")
+    print(f"  TaskGraph @id: {plan['task_graph']['@id']}")
+
     result = deep_agent.execute("对公客户风险全景分析")
     print("  洞察要点:")
     for insight in result.get("insights", []):
         print(f"    • {insight}")
+
+    _header("5.1b 贷前筛查 TaskGraph（6 节点）")
+    pre_plan = deep_agent.plan("贷前风险筛查：名单导入→多源扫描→规则命中")
+    print(f"  工作流: {pre_plan['workflow_id']}")
+    print(f"  节点: {[t['id'] + ':' + t['action'] for t in pre_plan['tasks']]}")
+    pre_result = deep_agent.execute("贷前风险筛查全流程")
+    t6 = pre_result["task_results"].get("T6", {})
+    print(f"  T6 状态: {t6.get('status')}, 受公理约束: {t6.get('governed_by')}")
 
     _header("5.3 指标波动归因")
     attr = deep_agent.attribute("risk_score", "industry")
