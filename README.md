@@ -59,6 +59,15 @@ uvicorn demo.api:app --host 0.0.0.0 --port 8000
 
 访问 http://localhost:8000 查看 API 说明，http://localhost:8000/docs 查看 Swagger 文档。
 
+### Hermes 智能对话（全场景演示）
+
+```bash
+python3 -m demo.api
+# 浏览器打开 http://localhost:8000/hermes
+```
+
+在对话中可说「开始导览」「演示全部」「运行场景 5.1」等，完整演示 34 条业务能力场景。详见 [docs/HERMES_DEMO.md](docs/HERMES_DEMO.md)。
+
 ### API 示例
 
 ```bash
@@ -114,6 +123,7 @@ python3 -m demo.run_scenarios --all
 - [技术方案（模块实现与选型）](docs/TECHNICAL_DESIGN.md)
 - [**本体论技术规格（T-Box/A-Box/V-Box）**](docs/ONTOLOGY_SPEC.md)
 - [场景演示方案](docs/SCENARIOS.md)
+- [**Hermes 智能对话演示**](docs/HERMES_DEMO.md)
 
 ### 本体化能力
 

@@ -14,6 +14,7 @@ from aip.agents.query_agent import QueryAgent
 from aip.assets.center import AssetCenter
 from aip.data_prep.dataset_registry import DataAgentProfile, Dataset, DatasetRegistry
 from aip.data_prep.session_upload import SessionUploadService
+from demo.hermes.routes import get_hermes_router
 from aip.ontology.console import get_console_router
 from aip.ontology.factory import (
     DEFAULT_DATASET_IRI,
@@ -32,6 +33,7 @@ OUTPUT_DIR = Path("output")
 
 app = FastAPI(title="AIP 智能分析平台 MVP", version="0.1.0")
 app.include_router(get_console_router())
+app.include_router(get_hermes_router())
 
 _registry: DatasetRegistry | None = None
 _query_agent: QueryAgent | None = None
@@ -105,6 +107,9 @@ h1{color:#1e3a5f}code{background:#f0f4f8;padding:2px 6px;border-radius:4px}
 .endpoint{margin:12px 0;padding:12px;background:#f9fafb;border-radius:8px}</style></head>
 <body><h1>AIP 智能分析平台 MVP</h1>
 <p>REST API 演示服务，核心端点:</p>
+<div class="endpoint"><b><a href="/hermes">/hermes</a></b> - Hermes 智能对话（34 场景完整演示）⭐</div>
+<div class="endpoint"><b>POST /api/hermes/chat</b> - 对话入口<br><code>{"message": "开始导览"}</code></div>
+<div class="endpoint"><b>GET /api/hermes/scenarios</b> - 场景清单</div>
 <div class="endpoint"><b>POST /api/ask</b> - 智能问数<br><code>{"question": "各机构授信余额排名"}</code></div>
 <div class="endpoint"><b>POST /api/research</b> - 深度研究分析<br><code>{"question": "对公客户风险全景分析"}</code></div>
 <div class="endpoint"><b>POST /api/report</b> - 生成报告<br><code>{"template_id": "weekly_review"}</code></div>
@@ -154,8 +159,9 @@ def generate_report(req: ReportRequest):
 def generate_dashboard():
     _init()
     comparison = _deep_agent.compare.by_dimension("region", "credit_balance")
+    table = _deep_agent.table_name
     summary = _registry.execute_sql(
-        "SELECT COUNT(*) AS cnt, SUM(credit_balance) AS total, AVG(risk_score) AS avg_risk FROM customer_credit"
+        f"SELECT COUNT(*) AS cnt, SUM(credit_balance) AS total, AVG(risk_score) AS avg_risk FROM {table}"
     ).to_dict(orient="records")[0]
 
     generator = DashboardGenerator(OUTPUT_DIR / "dashboards")
