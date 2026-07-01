@@ -92,5 +92,5 @@ aip:ScreeningReportShape
     sh:targetClass aip:Report ;
     sh:property [
         sh:path aip:usesTemplate ;
-        sh:hasValue aip:ReportTemplate/risk_screening ;
+        sh:hasValue <https://bank.example.com/ontology/aip#ReportTemplate/risk_screening> ;
     ] .

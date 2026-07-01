@@ -14,6 +14,13 @@ from aip.agents.query_agent import QueryAgent
 from aip.assets.center import AssetCenter
 from aip.data_prep.dataset_registry import DataAgentProfile, Dataset, DatasetRegistry
 from aip.data_prep.session_upload import SessionUploadService
+from aip.ontology.console import get_console_router
+from aip.ontology.factory import (
+    DEFAULT_DATASET_IRI,
+    ensure_ttl_export,
+    get_ontology_registry,
+    get_shacl_validator,
+)
 from aip.report.composer import ReportComposer
 from aip.semantic.model import load_semantic_model
 from aip.trust.layer import TrustLayer
@@ -24,6 +31,7 @@ DATA_DIR = DEMO_DIR / "data"
 OUTPUT_DIR = Path("output")
 
 app = FastAPI(title="AIP 智能分析平台 MVP", version="0.1.0")
+app.include_router(get_console_router())
 
 _registry: DatasetRegistry | None = None
 _query_agent: QueryAgent | None = None
@@ -36,17 +44,40 @@ def _init():
     if _registry is not None:
         return
     _registry = DatasetRegistry()
+    ontology = get_ontology_registry()
+    ensure_ttl_export()
+
+    csv_path = DATA_DIR / "scenarios" / "customer_360.csv"
+    if not csv_path.exists():
+        csv_path = DATA_DIR / "sample_customers.csv"
+    table_name = "customer_360" if "customer_360" in csv_path.name else "customer_credit"
+
     dataset = Dataset(
-        id="ds_customer_credit",
-        name="客户授信主题数据集",
+        id="ds_customer_360",
+        name="客户全景数据集",
         source_type="table",
-        table_name="customer_credit",
+        table_name=table_name,
         profile=DataAgentProfile(vectorized=True),
     )
-    _registry.register_csv(dataset, DATA_DIR / "sample_customers.csv")
-    semantic = load_semantic_model(DATA_DIR / "semantic_model.yaml")
-    _query_agent = QueryAgent(_registry, semantic, dataset.table_name)
-    _deep_agent = DeepResearchAgent(_registry, semantic, dataset.table_name)
+    _registry.register_csv(dataset, csv_path)
+
+    semantic_path = DATA_DIR / "scenarios" / "semantic_pre_loan.yaml"
+    if semantic_path.exists():
+        semantic = load_semantic_model(semantic_path)
+        semantic.dataset_iri = DEFAULT_DATASET_IRI
+    else:
+        semantic = load_semantic_model(DATA_DIR / "semantic_model.yaml")
+
+    shacl = get_shacl_validator()
+    _query_agent = QueryAgent(
+        _registry,
+        semantic,
+        table_name,
+        ontology_registry=ontology,
+        dataset_iri=DEFAULT_DATASET_IRI,
+        shacl_validator=shacl,
+    )
+    _deep_agent = DeepResearchAgent(_registry, semantic, table_name, ontology_registry=ontology, dataset_iri=DEFAULT_DATASET_IRI)
     _assets = AssetCenter()
 
 
@@ -79,6 +110,10 @@ h1{color:#1e3a5f}code{background:#f0f4f8;padding:2px 6px;border-radius:4px}
 <div class="endpoint"><b>POST /api/report</b> - 生成报告<br><code>{"template_id": "weekly_review"}</code></div>
 <div class="endpoint"><b>POST /api/upload</b> - 上传 CSV/Excel 文件</div>
 <div class="endpoint"><b>GET /api/dashboard</b> - 生成 HTML 看板</div>
+<div class="endpoint"><b>GET /ontology/console</b> - 本体配置台（OWL 同步 + SHACL）</div>
+<div class="endpoint"><b>GET /api/ontology/status</b> - 本体同步状态</div>
+<div class="endpoint"><b>POST /api/ontology/sync</b> - YAML ↔ TTL 双向同步</div>
+<div class="endpoint"><b>POST /api/ontology/shacl/validate</b> - pyshacl 校验</div>
 <div class="endpoint"><b>GET /docs</b> - Swagger API 文档</div>
 </body></html>"""
 
@@ -95,7 +130,9 @@ def list_datasets():
 @app.post("/api/ask")
 def ask(req: AskRequest):
     _init()
-    return _query_agent.ask(req.question)
+    result = _query_agent.ask(req.question)
+    result["shacl_engine"] = _query_agent.shacl.engine_name
+    return result
 
 
 @app.post("/api/research")
@@ -172,8 +209,13 @@ def serve_report(filename: str):
 @app.get("/api/metrics/explain/{metric_id}")
 def explain_metric(metric_id: str):
     _init()
-    semantic = load_semantic_model(DATA_DIR / "semantic_model.yaml")
-    return semantic.explain_metric(metric_id)
+    ontology = get_ontology_registry()
+    iri = metric_id if metric_id.startswith("aip:") else f"aip:Metric/{metric_id}"
+    result = ontology.explain_metric(iri)
+    if not result.get("found"):
+        semantic = load_semantic_model(DATA_DIR / "semantic_model.yaml")
+        return semantic.explain_metric(metric_id)
+    return result
 
 
 @app.get("/api/trace/{agent_type}")

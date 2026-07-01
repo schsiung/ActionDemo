@@ -75,8 +75,17 @@ def setup() -> tuple[DatasetRegistry, QueryAgent, DeepResearchAgent, AssetCenter
 
 def demo_ontology(query_agent: QueryAgent) -> None:
     _header("本体论 - OWL / SHACL / 语义 DDL Prompt")
+    from aip.ontology.factory import get_sync_service, get_shacl_validator
+
     ttl_path = ensure_ttl_export()
     print(f"  OWL Turtle 已导出: {ttl_path}")
+
+    sync = get_sync_service()
+    status = sync.status()
+    print(f"  同步状态: {'已同步' if status['in_sync'] else '待同步'} (preview={status['preview_hash']})")
+
+    validator = get_shacl_validator()
+    print(f"  SHACL 引擎: {validator.engine_name} ({len(validator.list_shapes())} YAML 形状)")
 
     prompt = query_agent.get_prompt_for_question("高风险客户筛查")
     print(f"  语义 DDL 长度: {len(prompt['semantic_ddl'])} 字符")

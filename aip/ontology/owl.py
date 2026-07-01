@@ -39,7 +39,7 @@ class TurtleSerializer:
             f"@prefix owl: <{OWL}> .",
             f"@prefix xsd: <{XSD}> .",
             "",
-            f"aip: aip:Ontology ;",
+            f"aip:Ontology a owl:Ontology ;",
             f"    owl:versionInfo \"{self.reg.version}\" ;",
             f"    rdfs:label \"AIP-Core 领域本体\"@zh .",
             "",
