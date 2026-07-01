@@ -1,0 +1,18 @@
+{
+  "@context": {
+    "@vocab": "https://bank.example.com/ontology/aip#",
+    "aip": "https://bank.example.com/ontology/aip#",
+    "data": "https://bank.example.com/data/aip/",
+    "text": "aip:text",
+    "confidenceLevel": "aip:confidenceLevel",
+    "supportedBy": { "@id": "aip:supportedBy", "@type": "@id" },
+    "metric": { "@id": "aip:metric", "@type": "@id" },
+    "source": { "@id": "aip:source", "@type": "@id" },
+    "evidenceType": "aip:evidenceType",
+    "derivation": "aip:derivation",
+    "timePeriod": "aip:timePeriod",
+    "limitations": { "@id": "aip:limitations", "@container": "@list" },
+    "rowCount": "aip:rowCount",
+    "dataset": { "@id": "aip:dataset", "@type": "@id" }
+  }
+}

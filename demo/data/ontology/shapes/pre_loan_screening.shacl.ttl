@@ -1,0 +1,96 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix aip: <https://bank.example.com/ontology/aip#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# 贷前筛查场景 SHACL 形状库
+
+aip:ConclusionShape
+    a sh:NodeShape ;
+    sh:targetClass aip:Conclusion ;
+    sh:property [
+        sh:path aip:supportedBy ;
+        sh:minCount 1 ;
+        sh:message "结论必须至少有一条证据支撑"@zh ;
+    ] .
+
+aip:EvidenceShape
+    a sh:NodeShape ;
+    sh:targetClass aip:Evidence ;
+    sh:property [
+        sh:path aip:evidenceType ;
+        sh:minCount 1 ;
+        sh:message "证据必须声明类型"@zh ;
+    ] ;
+    sh:property [
+        sh:path aip:source ;
+        sh:minCount 1 ;
+        sh:message "证据必须声明来源"@zh ;
+    ] .
+
+aip:EvidenceQueryShape
+    a sh:NodeShape ;
+    sh:targetClass aip:Evidence ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "查询类证据必须包含 derivation"@zh ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a aip:Evidence .
+                $this aip:evidenceType "query" .
+                FILTER NOT EXISTS { $this aip:derivation ?d . FILTER (strlen(str(?d)) > 5) }
+            }
+        """ ;
+    ] .
+
+aip:PreLoanCustomerShape
+    a sh:NodeShape ;
+    sh:targetClass aip:Customer ;
+    sh:property [
+        sh:path aip:riskScore ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 100 ;
+        sh:message "风险评分须在 0-100"@zh ;
+    ] ;
+    sh:property [
+        sh:path aip:hasCRRLevel ;
+        sh:minCount 1 ;
+        sh:message "贷前筛查须包含 CRR 等级"@zh ;
+    ] .
+
+aip:PreLoanHighRiskShape
+    a sh:NodeShape ;
+    sh:targetClass aip:Customer ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "高风险客户结论须标注信号来源"@zh ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a aip:Customer .
+                $this aip:riskScore ?score .
+                FILTER (?score >= 70)
+            }
+        """ ;
+    ] .
+
+aip:QueryResultShape
+    a sh:NodeShape ;
+    sh:targetClass aip:QueryResult ;
+    sh:property [
+        sh:path aip:dataset ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path aip:rowCount ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+    ] .
+
+aip:ScreeningReportShape
+    a sh:NodeShape ;
+    sh:targetClass aip:Report ;
+    sh:property [
+        sh:path aip:usesTemplate ;
+        sh:hasValue aip:ReportTemplate/risk_screening ;
+    ] .

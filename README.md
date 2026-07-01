@@ -108,6 +108,28 @@ python3 -m demo.run_scenarios --all
 
 详细场景说明见 [docs/SCENARIOS.md](docs/SCENARIOS.md)。
 
+## 研发文档
+
+- [研发计划（P0/P1/里程碑）](docs/RD_PLAN.md)
+- [技术方案（模块实现与选型）](docs/TECHNICAL_DESIGN.md)
+- [**本体论技术规格（T-Box/A-Box/V-Box）**](docs/ONTOLOGY_SPEC.md)
+- [场景演示方案](docs/SCENARIOS.md)
+
+### 本体化能力
+
+```bash
+# 导出 OWL Turtle
+python3 -m aip.ontology.cli
+
+# 查看语义 DDL Prompt
+python3 -c "
+from aip.ontology.factory import get_ontology_registry
+from aip.ontology.prompt import SemanticDDLPromptBuilder
+b = SemanticDDLPromptBuilder(get_ontology_registry())
+print(b.build_semantic_ddl('aip:Dataset/customer_360'))
+"
+```
+
 ## MVP 能力覆盖
 
 | 能力组 | MVP 实现 | 说明 |

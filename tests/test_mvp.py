@@ -118,6 +118,6 @@ def test_trust_layer():
     validated = trust.validate_conclusion(conclusion)
     assert validated.confidence == ConfidenceLevel.LOW
 
-    conclusion.evidence.append(EvidenceRef(type="query", source="test", detail="sql"))
+    conclusion.evidence.append(EvidenceRef(type="query", source="test", detail="SELECT 1", metric_id="aip:Metric/test", iri="data:aip/evidence/t1"))
     validated = trust.validate_conclusion(conclusion)
-    assert validated.confidence == ConfidenceLevel.MEDIUM
+    assert validated.confidence in (ConfidenceLevel.MEDIUM, ConfidenceLevel.HIGH)

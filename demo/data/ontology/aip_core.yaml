@@ -1,0 +1,380 @@
+# AIP-Core 领域本体（起步版）
+# 命名空间: https://bank.example.com/ontology/aip#
+# M1 以 YAML 维护，M2 迁移 OWL/Turtle
+
+ontology:
+  id: aip-core
+  version: "1.0.0"
+  namespace: "https://bank.example.com/ontology/aip#"
+  data_namespace: "https://bank.example.com/data/aip/"
+
+# ========== T-Box: 类 ==========
+classes:
+  BusinessEntity:
+    label: 业务实体
+    abstract: true
+
+  Customer:
+    label: 客户
+    parent: BusinessEntity
+    description: 对公/同业客户主体
+
+  Organization:
+    label: 机构
+    parent: BusinessEntity
+    description: 分支行/辖内机构
+
+  Product:
+    label: 产品
+    parent: BusinessEntity
+
+  Industry:
+    label: 行业
+    parent: BusinessEntity
+
+  Dataset:
+    label: 数据集
+    parent: DataAsset
+
+  Metric:
+    label: 指标
+    description: 可度量业务指标，含公式与口径
+
+  Dimension:
+    label: 维度
+    description: 分析维度，可含层级
+
+  QueryResult:
+    label: 查询结果
+
+  Chart:
+    label: 图表
+
+  Dashboard:
+    label: 看板
+
+  Report:
+    label: 报告
+
+  ReportTemplate:
+    label: 报告模板
+
+  AnalysisTask:
+    label: 分析任务
+
+  Conclusion:
+    label: 结论
+
+  Evidence:
+    label: 证据
+
+  AttributionResult:
+    label: 归因结果
+
+  ComparisonResult:
+    label: 对比结果
+
+  AlertRule:
+    label: 预警规则
+
+  AlertEvent:
+    label: 预警事件
+
+  BusinessRule:
+    label: 业务规则
+
+  KnowledgeDocument:
+    label: 知识文档
+
+  CRRLevel:
+    label: CRR反洗钱等级
+    individuals: [A, B, C, D, E]
+
+  DataAsset:
+    label: 数据资产
+    abstract: true
+
+# ========== T-Box: 对象属性 ==========
+object_properties:
+  hasMetric:
+    label: 包含指标
+    domain: Dataset
+    range: Metric
+
+  hasDimension:
+    label: 包含维度
+    domain: Dataset
+    range: Dimension
+
+  measuredOn:
+    label: 度量对象
+    domain: Metric
+    range: BusinessEntity
+
+  derivedFrom:
+    label: 派生自
+    domain: Metric
+    range: Metric
+
+  relatedTo:
+    label: 关联
+    domain: Metric
+    range: Metric
+    symmetric: true
+
+  belongsToOrg:
+    label: 归属机构
+    domain: Customer
+    range: Organization
+
+  belongsToIndustry:
+    label: 所属行业
+    domain: Customer
+    range: Industry
+
+  hasCRRLevel:
+    label: CRR等级
+    domain: Customer
+    range: CRRLevel
+
+  supportedBy:
+    label: 证据支撑
+    domain: Conclusion
+    range: Evidence
+
+  generatedBy:
+    label: 生成自
+    domain: Conclusion
+    range: AnalysisTask
+
+  triggersAlert:
+    label: 触发预警
+    domain: Customer
+    range: AlertEvent
+
+  governedBy:
+    label: 受规则约束
+    domain: AlertEvent
+    range: AlertRule
+
+  usesTemplate:
+    label: 使用模板
+    domain: Report
+    range: ReportTemplate
+
+  containsChart:
+    label: 包含图表
+    domain: [Report, Dashboard]
+    range: Chart
+
+  hasRelatedParty:
+    label: 关联方
+    domain: Customer
+    range: Customer
+
+  compares:
+    label: 对比
+    domain: ComparisonResult
+    range: BusinessEntity
+
+# ========== T-Box: 数据属性 ==========
+data_properties:
+  creditBalance:
+    label: 授信余额
+    domain: Customer
+    range: decimal
+    unit: 万元
+
+  riskScore:
+    label: 风险评分
+    domain: Customer
+    range: integer
+    min: 0
+    max: 100
+
+  salesLoanRatio:
+    label: 销贷比
+    domain: Customer
+    range: decimal
+
+  revenueYoY:
+    label: 收入同比变动
+    domain: Customer
+    range: decimal
+    unit: "%"
+
+  flowChangePct:
+    label: 流水变动率
+    domain: Customer
+    range: decimal
+    unit: "%"
+
+  formula:
+    label: 计算公式
+    domain: Metric
+    range: string
+
+  timeWindow:
+    label: 时间窗口
+    domain: Metric
+    range: string
+
+  confidenceLevel:
+    label: 置信度
+    domain: Conclusion
+    range: enum
+    values: [high, medium, low, unknown]
+
+# ========== T-Box: 指标个体（核心词表）==========
+metrics:
+  - iri: aip:Metric/credit_balance
+    label: 授信余额
+    formula: "SUM(credit_balance)"
+    unit: 万元
+    time_window: 报告期末
+    related_to: [aip:Metric/risk_score, aip:Metric/sales_loan_ratio]
+
+  - iri: aip:Metric/risk_score
+    label: 风险评分
+    formula: "AVG(risk_score)"
+    unit: 分
+    related_to: [aip:Metric/credit_balance]
+
+  - iri: aip:Metric/sales_loan_ratio
+    label: 销贷比
+    formula: "loan_balance / revenue"
+    derived_from: [aip:Metric/credit_balance]
+    related_to: [aip:Metric/revenue_yoy]
+
+  - iri: aip:Metric/revenue_yoy
+    label: 收入同比变动
+    formula: "(revenue - prior_revenue) / prior_revenue * 100"
+    unit: "%"
+
+  - iri: aip:Metric/flow_change_pct
+    label: 流水变动率
+    formula: "(current_flow - prior_flow) / prior_flow * 100"
+    unit: "%"
+    related_to: [aip:Metric/risk_score]
+
+  - iri: aip:Metric/marketing_priority
+    label: 营销优先级
+    formula: "MIN(marketing_priority)"
+    related_to: [aip:Metric/supply_chain_score]
+
+  - iri: aip:Metric/supply_chain_score
+    label: 产业链评分
+    formula: "AVG(supply_chain_score)"
+
+# ========== T-Box: 维度个体 ==========
+dimensions:
+  - iri: aip:Dimension/region
+    label: 机构区域
+    hierarchy: [aip:Dimension/region, aip:Dimension/branch]
+
+  - iri: aip:Dimension/industry
+    label: 行业
+
+  - iri: aip:Dimension/crr_level
+    label: CRR等级
+
+  - iri: aip:Dimension/warning_level
+    label: 预警等级
+
+# ========== T-Box: 公理 / 业务规则 ==========
+axioms:
+  - id: ax_crr_e_no_pure_credit
+    label: CRR-E级禁止纯信用合作
+    type: restriction
+    condition:
+      class: Customer
+      property: hasCRRLevel
+      value: E
+    consequence:
+      action: deny
+      rule: aip:BusinessRule/no_pure_credit_for_e
+
+  - id: ax_crr_d_limit_credit
+    label: CRR-D级限制纯信用贷款
+    type: restriction
+    condition:
+      class: Customer
+      property: hasCRRLevel
+      value: D
+    consequence:
+      action: restrict
+      rule: aip:BusinessRule/limit_pure_credit_for_d
+
+  - id: ax_revenue_yoy_threshold
+    label: 收入同比变动关注阈值
+    type: threshold
+    metric: aip:Metric/revenue_yoy
+    threshold: 20
+    direction: absolute
+    consequence:
+      action: flag
+      level: 关注
+
+  - id: ax_flow_drop_alert
+    label: 流水骤降预警
+    type: alert
+    class: AlertRule
+    iri: aip:AlertRule/flow_drop
+    metric: aip:Metric/flow_change_pct
+    condition: "<= -20"
+    level: 橙色
+    action: 现场核查
+
+  - id: ax_legal_cases_alert
+    label: 司法信号预警
+    type: alert
+    class: AlertRule
+    iri: aip:AlertRule/legal_cases
+    property: legal_cases
+    condition: ">= 2"
+    level: 红色
+    action: 限制新增授信
+
+# ========== V-Box: 数据集映射 ==========
+dataset_bindings:
+  - iri: aip:Dataset/customer_360
+    label: 客户全景数据集
+    table: customer_360
+    metrics: [aip:Metric/credit_balance, aip:Metric/risk_score, aip:Metric/sales_loan_ratio]
+    dimensions: [aip:Dimension/region, aip:Dimension/industry, aip:Dimension/crr_level]
+
+  - iri: aip:Dataset/post_loan_monitoring
+    label: 贷后巡检数据集
+    table: post_loan_monitoring
+    metrics: [aip:Metric/flow_change_pct]
+    dimensions: [aip:Dimension/warning_level]
+
+  - iri: aip:Dataset/marketing_whitelist
+    label: 营销白名单数据集
+    table: marketing_whitelist
+    metrics: [aip:Metric/marketing_priority, aip:Metric/supply_chain_score]
+
+# ========== 报告模板槽位（本体化）==========
+report_templates:
+  - iri: aip:ReportTemplate/marketing_onepager
+    label: 行内营销一页纸
+    slots:
+      - { id: profile, type: Conclusion, metrics: [aip:Metric/credit_balance] }
+      - { id: products, type: ActionItem, governed_by: aip:BusinessRule/product_eligibility }
+
+  - iri: aip:ReportTemplate/post_loan_report
+    label: 贷后检查报告
+    slots:
+      - { id: signals, type: AlertEvent }
+      - { id: analysis, type: Chart, metric: aip:Metric/flow_change_pct }
+
+# ========== 场景 → 本体模式 ==========
+ontology_patterns:
+  data_connect: { classes: [Dataset], properties: [hasMetric] }
+  semantic_query: { classes: [Metric, QueryResult], properties: [measuredOn] }
+  multi_turn: { classes: [QueryResult], properties: [follows] }
+  attribution: { classes: [AttributionResult], properties: [contributesTo] }
+  comparison: { classes: [ComparisonResult], properties: [compares] }
+  alert: { classes: [AlertRule, AlertEvent], properties: [triggersAlert, governedBy] }
+  report: { classes: [Report, ReportTemplate], properties: [usesTemplate, supportedBy] }
+  provenance: { classes: [Conclusion, Evidence], properties: [supportedBy] }

@@ -1,0 +1,101 @@
+# 贷前筛查 SHACL 形状库（YAML 驱动校验，与 .shacl.ttl 对齐）
+
+shapes:
+  - id: sh:ConclusionShape
+    target_class: aip:Conclusion
+    severity: Violation
+    message: 结论必须至少有一条证据支撑
+    constraints:
+      - path: aip:supportedBy
+        min_count: 1
+
+  - id: sh:ConclusionConfidenceShape
+    target_class: aip:Conclusion
+    severity: Warning
+    message: 低置信结论须标注局限性
+    when:
+      confidence_in: [low, unknown]
+    constraints:
+      - path: aip:limitations
+        min_count: 1
+
+  - id: sh:EvidenceShape
+    target_class: aip:Evidence
+    severity: Violation
+    message: 证据必须包含类型与来源
+    constraints:
+      - path: aip:evidenceType
+        required: true
+      - path: aip:source
+        required: true
+
+  - id: sh:EvidenceQueryShape
+    target_class: aip:Evidence
+    severity: Violation
+    message: 查询类证据必须包含 derivation（SQL 或查询摘要）
+    when:
+      evidence_type: query
+    constraints:
+      - path: aip:derivation
+        min_length: 5
+
+  - id: sh:MetricExplainShape
+    target_class: aip:Conclusion
+    severity: Violation
+    message: 指标口径解释必须引用指标 IRI
+    when:
+      conclusion_type: metric_explain
+    constraints:
+      - path: aip:metric
+        pattern: "^aip:Metric/"
+
+  - id: sh:PreLoanScreeningCustomerShape
+    target_class: aip:Customer
+    severity: Warning
+    message: 贷前筛查客户应包含风险评分与 CRR 等级
+    constraints:
+      - path: aip:riskScore
+        required: true
+      - path: aip:hasCRRLevel
+        required: true
+
+  - id: sh:PreLoanHighRiskShape
+    target_class: aip:Customer
+    severity: Violation
+    message: 高风险客户（riskScore>=70）须有司法或负面信号记录方可出具强结论
+    when:
+      risk_score_gte: 70
+    constraints:
+      - path: aip:legalCases
+        min_value: 0
+        note: 须在结论 limitations 中说明信号来源
+
+  - id: sh:CRRRestrictionShape
+    target_class: aip:Customer
+    severity: Violation
+    message: CRR-D/E 级客户禁止输出「可纯信用放贷」类结论
+  # 由公理推理器 ax_crr_d_limit_credit / ax_crr_e_no_pure_credit 执行
+
+  - id: sh:QueryResultShape
+    target_class: aip:QueryResult
+    severity: Violation
+    message: 查询结果必须关联数据集与指标
+    constraints:
+      - path: aip:dataset
+        required: true
+      - path: aip:rowCount
+        min_value: 0
+
+  - id: sh:ScreeningReportShape
+    target_class: aip:Report
+    severity: Violation
+    message: 贷前筛查报告必须包含风险信号章节与处置建议
+    constraints:
+      - path: aip:hasSection
+        includes: [risk_signals, path_recommendation]
+
+axioms_enforced:
+  - ax_crr_e_no_pure_credit
+  - ax_crr_d_limit_credit
+  - ax_legal_cases_alert
+  - ax_revenue_yoy_threshold
